@@ -22,14 +22,15 @@ solver = {}
 
 ---Abstraction layer for handling support point indices and positions.
 ---In general, for `n` rails, indices `1` to `n` are the top points, and indices `n + 1` to `2n` are the bottom points.
-local sp = {}
+solver.sp = {}
+local sp = solver.sp
 
 ---Translate a rail entity index and a rail support location into a support point index.
 ---@param rail_index integer
 ---@param location SupportPointLocation
 ---@param num_rails integer
 ---@return SupportPointIndex
-sp.index_from_rail = function(rail_index, location, num_rails)
+solver.sp.index_from_rail = function(rail_index, location, num_rails)
     return location == "top" and rail_index or rail_index + num_rails
 end
 
@@ -37,7 +38,7 @@ end
 ---@param point_index SupportPointIndex
 ---@param num_rails integer
 ---@return integer
-sp.rail_index = function(point_index, num_rails)
+solver.sp.rail_index = function(point_index, num_rails)
     return ((point_index - 1) % num_rails) + 1
 end
 
@@ -45,7 +46,7 @@ end
 ---@param point_index SupportPointIndex
 ---@param num_rails integer
 ---@return SupportPointIndex
-sp.paired_index = function(point_index, num_rails)
+solver.sp.paired_index = function(point_index, num_rails)
     return ((point_index + num_rails - 1) % (2 * num_rails)) + 1
 end
 
@@ -54,7 +55,7 @@ end
 ---@param point_index2 SupportPointIndex
 ---@param num_rails integer
 ---@return boolean
-sp.indices_are_paired = function(point_index1, point_index2, num_rails)
+solver.sp.indices_are_paired = function(point_index1, point_index2, num_rails)
     return math.abs(point_index1 - point_index2) == num_rails
 end
 
@@ -62,7 +63,7 @@ end
 ---@param point_index SupportPointIndex
 ---@param num_rails integer
 ---@return SupportPointLocation
-sp.location_from_index = function(point_index, num_rails)
+solver.sp.location_from_index = function(point_index, num_rails)
     return point_index <= num_rails and "top" or "bottom"
 end
 
@@ -70,7 +71,7 @@ end
 ---@param rail ElevatedRailData
 ---@param location SupportPointLocation
 ---@return MapPosition.0
-sp.position = function(rail, location)
+solver.sp.position = function(rail, location)
     return {
         x = rail.position.x + const.support_points[rail.name][rail.direction][location].offset.x,
         y = rail.position.y + const.support_points[rail.name][rail.direction][location].offset.y,

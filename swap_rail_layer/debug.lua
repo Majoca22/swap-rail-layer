@@ -1,5 +1,5 @@
-local const = require("swap_rail_layer.constants")
 local solver = require("swap_rail_layer.support_solver")
+local sp = solver.sp
 
 commands.add_command("srl-debug", "",
     function(c)
@@ -10,6 +10,15 @@ commands.add_command("srl-debug", "",
         end
     end
 )
+
+local function elevated_draw_position(position, offset)
+    offset = offset or {x = 0, y = 0}
+    -- visually, elevated rails look like they are 3 tiles higher than where their position really is
+    return {
+        x = position.x + offset.x,
+        y = position.y + offset.y - 3,
+    }
+end
 
 script.on_event(defines.events.on_player_selected_area,
     function(e)
@@ -23,72 +32,54 @@ script.on_event(defines.events.on_player_selected_area,
                 direction = entity.direction,
             })
         end
-        entities = solver.filter_entities(entities)
-        local points = {top = {}, bottom = {}}
-        local n = #entities
+        local rails = solver.filter_entities(entities)
 
         log("----------------------------------------------------------------------------------")
-        local connections = solver.get_support_point_connections(entities)
+        local connections = solver.get_support_point_connections(rails)
         for i, conns in pairs(connections) do
             table.sort(conns)
             log(i .. ": " .. serpent.line(conns))
         end
 
-        for i, entity in pairs(entities) do
-            for j, location in pairs({"top", "bottom"}) do
-                table.insert(points[location], {
-                    index = i + ((j - 1) * n),
-                    position = {
-                        x = entity.position.x + const.support_points[entity.name][entity.direction][location].offset.x,
-                        y = entity.position.y + const.support_points[entity.name][entity.direction][location].offset.y,
-                    },
-                    entity_position = entity.position,
+        local points = {}
+        local n = #rails
+        for i, rail in pairs(rails) do
+            for _, location in pairs({"top", "bottom"}) do
+                table.insert(points, {
+                    index = sp.index_from_rail(i, location, n),
+                    location = location,
+                    position = sp.position(rail, location),
+                    rail_position = rail.position,
                 })
             end
         end
 
-        for _, point in pairs(points.top) do
+        for _, point in pairs(points) do
+            local color = point.location == "top" and {1, 1, 1} or {0, 1, 1}
+            local text_offset = {x = 0, y = point.location == "top" and -0.5 or 0.5}
             rendering.draw_line({
-                color = {1, 1, 1},
+                color = color,
                 width = 2,
-                from = {x = point.position.x, y = point.position.y - 3 - 0.5},
-                to = {x = point.entity_position.x, y = point.entity_position.y - 3},
+                from = elevated_draw_position(point.position, text_offset),
+                to = elevated_draw_position(point.rail_position),
                 surface = e.surface,
             })
             rendering.draw_text({
                 text = point.index,
                 surface = e.surface,
-                target = {x = point.position.x, y = point.position.y - 3 - 0.5},
-                color = {1, 1, 1},
+                target = elevated_draw_position(point.position, text_offset),
+                color = color,
                 scale = 2,
                 alignment = "center",
                 vertical_alignment = "middle",
             })
         end
-        for _, point in pairs(points.bottom) do
-            rendering.draw_line({
-                color = {0, 1, 1},
-                width = 2,
-                from = {x = point.position.x, y = point.position.y - 3 + 0.5},
-                to = {x = point.entity_position.x, y = point.entity_position.y - 3},
-                surface = e.surface,
-            })
-            rendering.draw_text({
-                text = point.index,
-                surface = e.surface,
-                target = {x = point.position.x, y = point.position.y - 3 + 0.5},
-                color = {0, 1, 1},
-                scale = 2,
-                alignment = "center",
-                vertical_alignment = "middle",
-            })
-        end
-        for _, entity in pairs(entities) do
+        for _, rail in pairs(rails) do
             rendering.draw_circle({
                 color = {1, 0, 0},
                 radius = 0.15,
                 filled = true,
-                target = {x = entity.position.x, y = entity.position.y - 3},
+                target = elevated_draw_position(rail.position),
                 surface = e.surface,
             })
         end
