@@ -1,5 +1,5 @@
-local const = require("constants")
-local solver = require("support_solver")
+local const = require("swap_rail_layer.constants")
+local solver = require("swap_rail_layer.support_solver")
 
 commands.add_command("srl-debug", "",
     function(c)

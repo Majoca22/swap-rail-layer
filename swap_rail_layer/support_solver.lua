@@ -1,4 +1,4 @@
-local const = require("constants")
+local const = require("swap_rail_layer.constants")
 local table = require("__flib__.table")
 local math = require("__flib__.math")
 local util = require("__core__.lualib.util")
