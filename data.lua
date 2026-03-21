@@ -57,8 +57,4 @@ if settings.startup["swap_rail_layer_debug"].value then
             item_to_spawn = "swap_rail_layer_debug_selection_tool",
         },
     })
-
-    data.raw["rail-planner"]["rail"].stack_size = 2000
-    data.raw["rail-planner"]["rail-ramp"].stack_size = 2000
-    data.raw["item"]["rail-support"].stack_size = 2000
 end

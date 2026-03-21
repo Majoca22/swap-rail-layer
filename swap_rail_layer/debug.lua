@@ -230,9 +230,14 @@ end
 
 commands.add_command("srl-debug", "",
     function(c)
-        if not settings.startup.swap_rail_layer_debug.value then return end
         local player = game.get_player(c.player_index)
         local param = c.parameter
+
+        if not settings.startup.swap_rail_layer_debug.value then
+            if not player then return end
+            player.print("Debug mode not enabled")
+            return
+        end
 
         if param == "clear-all-rendering" then
             rendering.clear(script.mod_name)
