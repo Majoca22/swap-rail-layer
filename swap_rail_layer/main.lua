@@ -41,30 +41,4 @@ main.swap_rail_layer = function(entities)
     return entities, err
 end
 
-script.on_event("swap_rail_layer_linked",
-    ---@param e EventData.CustomInputEvent
-    function(e)
-        -- TODO: can't work with stations in the blueprint
-        -- TODO: will have to error if there's something beneath an existing elevated rail
-        local player = game.get_player(e.player_index)
-        if not player then return end
-
-        if player.is_cursor_blueprint() and player.cursor_stack and player.cursor_stack.valid_for_read then
-            local entities = player.cursor_stack.get_blueprint_entities()
-            if not entities then return end
-
-            local new_entities, err = swap_rail_layer(entities)
-            if not err then
-                player.cursor_stack.set_blueprint_entities(new_entities)
-                player.create_local_flying_text({
-                    text = { "rail-layer-switched" },
-                    create_at_cursor = true,
-                })
-            else
-                -- TODO: do something with the error
-            end
-        end
-    end
-)
-
 return main
