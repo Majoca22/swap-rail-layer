@@ -1,6 +1,19 @@
 local dir = defines.direction
 
+---@alias SupportPointLocation "top" | "bottom"
+
+---@class SupportPointDefinition Either of the two ends of an elevated rail entity
+---@field offset MapPosition.0 The support point's offset from the position of the elevated rail entity
+---@field direction defines.direction The direction that the rail support entity will need to face when built under this support point
+---@field connects_to SupportPointConnectionDefinition[] All possible ways that this support point can connect to another elevated rail
+
+---@class SupportPointConnectionDefinition A description of an elevated rail that is able to connect to another given elevated rail at a particular support point
+---@field name string The name of the other elevated rail entity that can connect at this support point
+---@field direction defines.direction The direction that the other elevated rail entity will need to face in order to make the connection valid
+---@field location SupportPointLocation Which support point on the other elevated rail is able to connect to this rail's support point
+
 return {
+    ---@type { [string]: string }
     hotswap_map = {
         ["straight-rail"] = "elevated-straight-rail",
         ["elevated-straight-rail"] = "straight-rail",
@@ -12,11 +25,13 @@ return {
         ["elevated-curved-rail-b"] = "curved-rail-b",
     },
 
+    ---@type { [string]: string }
     layer_map = {
         ["ground"] = "elevated",
         ["elevated"] = "ground",
     },
 
+    ---@type { [string]: { [defines.direction]: { [SupportPointLocation]: SupportPointDefinition } } }
     support_points = {
         ["elevated-straight-rail"] = {
             [dir.north] = {
