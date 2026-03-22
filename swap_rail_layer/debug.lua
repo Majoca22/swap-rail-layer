@@ -251,7 +251,14 @@ debug.run_command = function(player, cmd)
         end
 
     elseif cmd == "run-all-tests" then
-        run_all_tests(player)
+        -- building blueprints doesn't work unless the chunks are generated
+        -- we can request them to be generated via script but it seems a lot slower than just having the player run around
+        -- not sure what the best solution is but for now this is fine
+        if not game.surfaces[test_surface_name].is_chunk_generated({0, 10}) then
+            player.print("Wait until test surface chunks have been generated - run around to generate them faster", {print_skip = defines.print_skip.never})
+        else
+            run_all_tests(player)
+        end
 
     elseif cmd == "clear-test-surface" then
         game.surfaces[test_surface_name].clear(true)
