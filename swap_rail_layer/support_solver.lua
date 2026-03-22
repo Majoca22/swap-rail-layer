@@ -504,6 +504,7 @@ local function solve_supports(rails, ramps, connections, supported_by_ramp)
                         this_point_is_supported_elsewhere = true
                     end
                 end
+                -- point can also be supported by a ramp
                 if table.find(supported_by_ramp, supported_point) then this_point_is_supported_elsewhere = true end
                 if not this_point_is_supported_elsewhere then redundant = false end
             end
