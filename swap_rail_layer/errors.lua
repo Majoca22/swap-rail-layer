@@ -6,6 +6,7 @@ local errors = {}
 ---@enum ErrorType
 local error_types = {
     "train_stop_in_blueprint",
+    "is_not_rail_blueprint",
 }
 
 for _, type in pairs(error_types) do

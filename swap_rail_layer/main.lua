@@ -8,6 +8,7 @@ local main = {}
 
 main.swap_rail_layer = function(entities)
     local new_entities = table.deep_copy(entities)
+    local is_rail_blueprint = false -- only makes sense to swap if there is at least one rail or ramp
 
     for i, entity in pairs(new_entities) do
         -- error if there are any train stops as these cannot be elevated
@@ -17,10 +18,14 @@ main.swap_rail_layer = function(entities)
 
         -- hotswap ground and elevated rails
         local new_entity = const.hotswap_map[entity.name]
-        if new_entity then entity.name = new_entity end
+        if new_entity then
+            is_rail_blueprint = true
+            entity.name = new_entity
+        end
 
         -- reverse ramps
         if entity.name == "rail-ramp" then
+            is_rail_blueprint = true
             entity.direction = direction.opposite(entity.direction or defines.direction.north)
         end
 
@@ -32,6 +37,10 @@ main.swap_rail_layer = function(entities)
         -- remove rail supports
         -- keep them in the table so `entities` stays as an array, we'll fully remove them later
         if entity.name == "rail-support" then new_entities[i].to_delete = true end ---@diagnostic disable-line: inject-field
+    end
+
+    if not is_rail_blueprint then
+        return entities, {type = errors.is_not_rail_blueprint}
     end
 
     -- add rail supports
