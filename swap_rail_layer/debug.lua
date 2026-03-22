@@ -2,6 +2,7 @@ local const = require("swap_rail_layer.constants")
 local main = require("swap_rail_layer.main")
 local solver = require("swap_rail_layer.support_solver")
 local sp = solver.sp
+local math = require("__flib__.math")
 local table = require("__flib__.table")
 
 local debug = {}
@@ -130,8 +131,9 @@ local function encode_test_string(blueprint_entities)
     for _, bp_entity in pairs(blueprint_entities) do
         local e = table.deep_copy(bp_entity)
         e.position = {
-            x = e.position.x - median.x,
-            y = e.position.y - median.y,
+            -- move in increments of 2 to respect rail grid
+            x = e.position.x - math.round(median.x, 2),
+            y = e.position.y - math.round(median.y, 2),
         }
         table.insert(entities, e)
     end
@@ -161,8 +163,9 @@ local function run_test(player, test_string, map_position, surface)
         surface.create_entity({
             name = entity.name,
             position = {
-                x = entity.position.x + map_position.x - (size.width / 2 + 8),
-                y = entity.position.y + map_position.y,
+                -- move in increments of 2 to respect rail grid
+                x = entity.position.x + math.round(map_position.x - (size.width / 2 + 8), 2),
+                y = entity.position.y + math.round(map_position.y, 2),
             },
             direction = entity.direction,
             force = game.forces["player"],
@@ -171,12 +174,13 @@ local function run_test(player, test_string, map_position, surface)
         })
     end
     local bb = {
+        -- move in increments of 2 to respect rail grid
         left_top = {
-            x = map_position.x - (size.width / 2 + 8) - (size.width / 2) - 4,
+            x = map_position.x - math.round((size.width / 2 + 8), 2) - (size.width / 2) - 4,
             y = map_position.y - (size.height / 2) - 4,
         },
         right_bottom = {
-            x = map_position.x - (size.width / 2 + 8) + (size.width / 2) + 4,
+            x = map_position.x - math.round((size.width / 2 + 8), 2) + (size.width / 2) + 4,
             y = map_position.y + (size.height / 2) + 4,
         },
     }
@@ -201,7 +205,8 @@ local function run_test(player, test_string, map_position, surface)
             surface = surface,
             force = player.force,
             position = {
-                x = map_position.x + (size.width / 2 + 8),
+                -- move in increments of 2 to respect rail grid
+                x = map_position.x + math.round((size.width / 2 + 8), 2),
                 y = map_position.y,
             },
         })
