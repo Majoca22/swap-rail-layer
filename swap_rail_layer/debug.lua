@@ -1,3 +1,4 @@
+local const = require("swap_rail_layer.constants")
 local main = require("swap_rail_layer.main")
 local solver = require("swap_rail_layer.support_solver")
 local sp = solver.sp
@@ -52,7 +53,7 @@ debug.handle_debug_selection = function(e)
     local points = {}
     local n = #rails
     for i, rail in pairs(rails) do
-        for _, location in pairs({"top", "bottom"}) do
+        for _, location in pairs(const.locations) do
             table.insert(points, {
                 index = sp.index_from_rail(i, location, n),
                 location = location,
@@ -63,8 +64,8 @@ debug.handle_debug_selection = function(e)
     end
 
     for _, point in pairs(points) do
-        local color = point.location == "top" and {1, 1, 1} or {0, 1, 1}
-        local text_offset = {x = 0, y = point.location == "top" and -0.5 or 0.5}
+        local color = point.location == const.locations.top and {1, 1, 1} or {0, 1, 1}
+        local text_offset = {x = 0, y = point.location == const.locations.top and -0.5 or 0.5}
         rendering.draw_line({
             color = color,
             width = 2,

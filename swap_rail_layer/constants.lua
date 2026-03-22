@@ -1,7 +1,5 @@
 local dir = defines.direction
 
----@alias SupportPointLocation "top" | "bottom"
-
 ---@class SupportPointDefinition Either of the two ends of an elevated rail entity
 ---@field offset MapPosition.0 The support point's offset from the position of the elevated rail entity
 ---@field direction defines.direction The direction that the rail support entity will need to face when built under this support point
@@ -11,6 +9,12 @@ local dir = defines.direction
 ---@field name string The name of the other elevated rail entity that can connect at this support point
 ---@field direction defines.direction The direction that the other elevated rail entity will need to face in order to make the connection valid
 ---@field location SupportPointLocation Which support point on the other elevated rail is able to connect to this rail's support point
+
+---@enum SupportPointLocation
+local locations = {
+    top = "top",
+    bottom = "bottom",
+}
 
 return {
     ---@type { [string]: string }
@@ -33,6 +37,8 @@ return {
 
     support_distance = prototypes.entity["rail-support"].support_range,
     ramp_support_distance = prototypes.entity["rail-ramp"].support_range,
+
+    locations = locations,
 
     ---@type { [string]: { [defines.direction]: { [SupportPointLocation]: SupportPointDefinition } } }
     support_points = {

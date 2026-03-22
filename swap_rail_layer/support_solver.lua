@@ -31,7 +31,7 @@ local sp = solver.sp
 ---@param num_rails integer
 ---@return SupportPointIndex
 solver.sp.index_from_rail = function(rail_index, location, num_rails)
-    return location == "top" and rail_index or rail_index + num_rails
+    return location == const.locations.top and rail_index or rail_index + num_rails
 end
 
 ---Translate a support point index into a rail entity index.
@@ -64,7 +64,7 @@ end
 ---@param num_rails integer
 ---@return SupportPointLocation
 solver.sp.location_from_index = function(point_index, num_rails)
-    return point_index <= num_rails and "top" or "bottom"
+    return point_index <= num_rails and const.locations.top or const.locations.bottom
 end
 
 ---Determine the map position for a support point on a rail.
@@ -90,8 +90,8 @@ solver.get_support_point_connections = function(rails)
     local direct_connections = {}
 
     for i, rail in pairs(rails) do
-        local index_top = sp.index_from_rail(i, "top", n)
-        local index_bottom = sp.index_from_rail(i, "bottom", n)
+        local index_top = sp.index_from_rail(i, const.locations.top, n)
+        local index_bottom = sp.index_from_rail(i, const.locations.bottom, n)
 
         -- each support point on the same rail entity is always directly connected to the other one
         direct_connections[index_top] = {index_bottom}
@@ -112,9 +112,9 @@ solver.get_support_point_connections = function(rails)
                             and rail.position.x + support_point_def.offset.x == sp.position(other_rail, connection_def.location).x
                             and rail.position.y + support_point_def.offset.y == sp.position(other_rail, connection_def.location).y
                         then
-                            if location == "top" then
+                            if location == const.locations.top then
                                 table.insert(direct_connections[index_top], sp.index_from_rail(j, connection_def.location, n))
-                            elseif location == "bottom" then
+                            elseif location == const.locations.bottom then
                                 table.insert(direct_connections[index_bottom], sp.index_from_rail(j, connection_def.location, n))
                             end
                         end
@@ -129,7 +129,7 @@ solver.get_support_point_connections = function(rails)
     ---@type { [SupportPointIndex]: SupportPointIndex[] }
     local connections = {}
     for i, rail in pairs(rails) do
-        for _, location in pairs({"top", "bottom"}) do
+        for _, location in pairs(const.locations) do
             local index = sp.index_from_rail(i, location, n) -- this is the index of the support point we are considering
             -- this is the map position of the support point we are considering
             -- we need other support points to be within a certain distance of this in order to be supportable by a rail support at this position
@@ -167,8 +167,8 @@ solver.get_support_point_connections = function(rails)
                 
                 local other_rail = rails[sp.rail_index(support_point_index, n)]
                 -- get the positions for both of the rail's support points
-                local other_pos1 = sp.position(other_rail, "top")
-                local other_pos2 = sp.position(other_rail, "bottom")
+                local other_pos1 = sp.position(other_rail, const.locations.top)
+                local other_pos2 = sp.position(other_rail, const.locations.bottom)
                 if
                     util.distance(pos, other_pos1) > const.support_distance
                     or util.distance(pos, other_rail.position) > const.support_distance
