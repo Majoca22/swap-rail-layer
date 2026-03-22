@@ -162,8 +162,8 @@ solver.get_support_point_connections = function(rails)
                 -- -- A ------
                 -- --      \
                 -- --       C
-                if table.find(already_visited, support_point_index) then return end -- TODO: use points as keys so can O(1) lookup
-                table.insert(already_visited, support_point_index)
+                if already_visited[support_point_index] then return end
+                already_visited[support_point_index] = true
                 
                 local other_rail = rails[sp.rail_index(support_point_index, n)]
                 -- get the positions for both of the rail's support points
