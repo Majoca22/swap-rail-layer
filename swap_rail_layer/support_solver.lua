@@ -5,7 +5,6 @@ local bounding_box = require("__flib__.bounding-box")
 local util = require("__core__.lualib.util")
 
 solver = {}
--- TODO: handle the fact that ramps can provide support
 
 ---@class ElevatedRailData
 ---@field name "elevated-straight-rail" | "elevated-half-diagonal-rail" | "elevated-curved-rail-a" | "elevated-curved-rail-b" The entity name of the elevated rail
