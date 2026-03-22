@@ -31,6 +31,9 @@ return {
         ["elevated"] = "ground",
     },
 
+    support_distance = prototypes.entity["rail-support"].support_range,
+    ramp_support_distance = prototypes.entity["rail-ramp"].support_range,
+
     ---@type { [string]: { [defines.direction]: { [SupportPointLocation]: SupportPointDefinition } } }
     support_points = {
         ["elevated-straight-rail"] = {

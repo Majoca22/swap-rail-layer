@@ -146,11 +146,11 @@ solver.get_support_point_connections = function(rails)
                 -- this is my current understanding of how the rail support system works:
                 -- in order for a rail support at point A to provide support for point B, we need:
                 -- 1. a train could traverse between A and B, without changing direction, along path P
-                -- 2. every support point X along path P satisfies distance(A, X) <= 11
-                -- 3. distance(A, B) <= 11
-                -- 4. distance(A, the map position of the rail entity containing B) <= 11
-                -- 5. distance(A, the OTHER support point of the rail entity containing B) <= 11
-                -- (11 is the elevated-rails rail-support support_range value. it can be modified at startup, or different supports could be created that have different support_range values)
+                -- 2. every support point X along path P satisfies distance(A, X) <= const.support_distance
+                -- 3. distance(A, B) <= const.support_distance
+                -- 4. distance(A, the map position of the rail entity containing B) <= const.support_distance
+                -- 5. distance(A, the OTHER support point of the rail entity containing B) <= const.support_distance
+                -- (const.support_distance is the elevated-rails rail-support support_range value. it can be modified at startup, or different supports could be created that have different support_range values)
                 -- so the strategy is to start from point A, traverse to all other points along path P, and at every step check the distance restrictions and if any of them are false, stop moving along P
                 -- use recursive depth-first search to handle forks/splits
                 -- we also keep track of whether or not we just came from the other support point on the same rail entity, because in that case we can traverse to ANY of the directly connected support points
@@ -170,10 +170,9 @@ solver.get_support_point_connections = function(rails)
                 local other_pos1 = sp.position(other_rail, "top")
                 local other_pos2 = sp.position(other_rail, "bottom")
                 if
-                -- TODO: not hardcoded 11's
-                    util.distance(pos, other_pos1) > 11
-                    or util.distance(pos, other_rail.position) > 11
-                    or util.distance(pos, other_pos2) > 11
+                    util.distance(pos, other_pos1) > const.support_distance
+                    or util.distance(pos, other_rail.position) > const.support_distance
+                    or util.distance(pos, other_pos2) > const.support_distance
                 then return end
 
                 table.insert(connections[index], support_point_index)
