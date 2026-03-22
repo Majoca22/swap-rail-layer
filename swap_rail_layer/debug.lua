@@ -42,14 +42,15 @@ debug.handle_debug_selection = function(e)
             direction = entity.direction,
         })
     end
-    local rails = solver.filter_entities(entities)
+    local rails, ramps = solver.filter_entities(entities)
 
     log("----------------------------------------------------------------------------------")
-    local connections = solver.get_support_point_connections(rails)
+    local connections, supported_by_ramp = solver.get_support_point_connections(rails, ramps)
     for i, conns in pairs(connections) do
         table.sort(conns)
         log(i .. ": " .. serpent.line(conns))
     end
+    log("supported by ramp: " .. serpent.line(supported_by_ramp))
 
     local points = {}
     local n = #rails

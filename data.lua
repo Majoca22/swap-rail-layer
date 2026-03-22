@@ -25,6 +25,7 @@ if settings.startup["swap_rail_layer_debug"].value then
                     "elevated-half-diagonal-rail",
                     "elevated-curved-rail-a",
                     "elevated-curved-rail-b",
+                    "rail-ramp",
                 },
             },
             alt_select = {
@@ -36,6 +37,7 @@ if settings.startup["swap_rail_layer_debug"].value then
                     "elevated-half-diagonal-rail",
                     "elevated-curved-rail-a",
                     "elevated-curved-rail-b",
+                    "rail-ramp",
                 },
             },
 

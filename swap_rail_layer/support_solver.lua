@@ -12,6 +12,11 @@ solver = {}
 ---@field position MapPosition.0 The position of the elevated rail entity
 ---@field direction defines.direction The direction of the elevated rail entity
 
+---@class RailRampData
+---@field name "rail-ramp" The entity name of the rail ramp
+---@field position MapPosition.0 The position of the rail ramp entity
+---@field direction defines.direction The direction of the rail ramp entity
+
 ---@class RailSupportData
 ---@field name "rail-support" The entity name of the rail support
 ---@field position MapPosition.0 The position of the rail support entity
@@ -79,6 +84,16 @@ solver.sp.position = function(rail, location)
     }
 end
 
+---Determine the map position for a support point on a ramp.
+---@param ramp RailRampData
+---@return MapPosition.0
+solver.sp.position_ramp = function(ramp)
+    return {
+        x = ramp.position.x + const.support_points[ramp.name][ramp.direction][const.locations.top].offset.x,
+        y = ramp.position.y + const.support_points[ramp.name][ramp.direction][const.locations.top].offset.y,
+    }
+end
+
 ---Determine if two potential rail supports would collide with each other.
 ---@param position1 any
 ---@param direction1 any
@@ -138,8 +153,10 @@ solver.sp.will_collide = function(position1, direction1, position2, direction2)
 end
 
 ---@param rails ElevatedRailData[]
----@return { [SupportPointIndex]: SupportPointIndex[] }
-solver.get_support_point_connections = function(rails)
+---@param ramps RailRampData[]
+---@return { [SupportPointIndex]: SupportPointIndex[] } connections The connection relationships among rail support points
+---@return SupportPointIndex[] supported_by_ramp A list of all connection points that are already supported by ramps
+solver.get_support_point_connections = function(rails, ramps)
     local n = #rails
 
     -- first we have to get the direct connections, so then we can traverse through them
@@ -147,6 +164,8 @@ solver.get_support_point_connections = function(rails)
     ---Maps support point indices to all other indices that the point is directly connected to
     ---@type { [SupportPointIndex]: SupportPointIndex[] }
     local direct_connections = {}
+    ---@type { integer: SupportPointIndex[] }
+    local ramp_direct_connections = {}
 
     for i, rail in pairs(rails) do
         local index_top = sp.index_from_rail(i, const.locations.top, n)
@@ -178,6 +197,25 @@ solver.get_support_point_connections = function(rails)
                             end
                         end
                     end
+                end
+            end
+        end
+    end
+    for i, ramp in pairs(ramps) do
+        ramp_direct_connections[i] = {}
+        local support_point_def = const.support_points[ramp.name][ramp.direction][const.locations.top]
+        for j, other_rail in pairs(rails) do
+            for _, connection_def in pairs(support_point_def.connects_to) do
+                -- connection_def.location is the support point location on the *other* rail
+                if
+                    -- two support points on different rails "connect" if they are essentially the same support point
+                    -- this means that the rails are compatible to be connected (check name and direction in connection definition), AND the support points are at the same map position (check entity position + support point offset)
+                    other_rail.name == connection_def.name
+                    and other_rail.direction == connection_def.direction
+                    and ramp.position.x + support_point_def.offset.x == sp.position(other_rail, connection_def.location).x
+                    and ramp.position.y + support_point_def.offset.y == sp.position(other_rail, connection_def.location).y
+                then
+                    table.insert(ramp_direct_connections[i], sp.index_from_rail(j, connection_def.location, n))
                 end
             end
         end
@@ -253,18 +291,89 @@ solver.get_support_point_connections = function(rails)
         end
     end
 
-    return connections
+    ---@type { integer: SupportPointIndex[] }
+    local ramp_connections = {}
+    for i, ramp in pairs(ramps) do
+        -- this is the map position of the support point we are considering
+        -- we need other support points to be within a certain distance of this in order to be supportable by this ramp
+        local pos = sp.position_ramp(ramp)
+
+        -- now we need to check all other support points
+        ramp_connections[i] = {}
+        local already_visited = {} -- don't evaluate the same other support position twice
+
+        ---Evaluate if this ramp could support another support point
+        ---@param support_point_index SupportPointIndex The other support point we are checking
+        ---@param came_from_other_end_of_same_rail boolean Whether the previous support point we checked along this path was the other support point belonging to this support point's rail
+        local function traverse_recursive(support_point_index, came_from_other_end_of_same_rail)
+            -- see above for explanation
+            if already_visited[support_point_index] then return end
+            already_visited[support_point_index] = true
+
+            local other_rail = rails[sp.rail_index(support_point_index, n)]
+            -- get the positions for both of the rail's support points
+            local other_pos1 = sp.position(other_rail, const.locations.top)
+            local other_pos2 = sp.position(other_rail, const.locations.bottom)
+            if
+                util.distance(pos, other_pos1) > const.ramp_support_distance
+                or util.distance(pos, other_rail.position) > const.ramp_support_distance
+                or util.distance(pos, other_pos2) > const.ramp_support_distance
+            then return end
+
+            table.insert(ramp_connections[i], support_point_index)
+            ---@type SupportPointIndex[]
+            local points_to_check
+            if came_from_other_end_of_same_rail then
+                -- can check everything
+                points_to_check = direct_connections[support_point_index]
+            else
+                -- can only check the other point on the rail
+                points_to_check = {sp.paired_index(support_point_index, n)}
+            end
+            for _, connected_index in pairs(points_to_check) do
+                traverse_recursive(connected_index, sp.indices_are_paired(support_point_index, connected_index, n))
+            end
+        end
+        -- start with a value of true for `came_from_other_end_of_same_rail` to force it to check all direct connections
+        -- ramps aren't really part of the "support point index" structure, so just start the process from each of their direct connections
+        for _, support_point_index in pairs(ramp_direct_connections[i]) do
+            traverse_recursive(support_point_index, true)
+        end
+    end
+
+    -- remove duplicates, condense to single array
+    local supported_by_ramp_0 = {}
+    for _, connected_points in pairs(ramp_connections) do
+        for __, support_point_index in pairs(connected_points) do
+            supported_by_ramp_0[support_point_index] = true
+        end
+    end
+    local supported_by_ramp = {}
+    for index, _ in pairs(supported_by_ramp_0) do
+        table.insert(supported_by_ramp, index)
+    end
+
+    return connections, supported_by_ramp
 end
 
 ---@param rails ElevatedRailData[]
 ---@param connections { [SupportPointIndex]: SupportPointIndex[] }
+---@param supported_by_ramp SupportPointIndex[]
 ---@return RailSupportData[]
-local function solve_supports(rails, connections)
+local function solve_supports(rails, connections, supported_by_ramp)
     local n = #rails
 
     ---@type RailSupportData[]
     local supports = {}
     local original_connections = table.deep_copy(connections) -- since we will be modifying connections
+
+    -- remove all points that are supported by ramps from consideration, because we don't need to provide support for them with rail supports
+    for _, supported_point in pairs(supported_by_ramp) do
+        for __, conns in pairs(connections) do
+            local index_to_remove = table.find(conns, supported_point)
+            if index_to_remove then table.remove(conns, index_to_remove) end
+        end
+    end
 
     -- keep adding supports until all points are supported
     local need_to_add_support = true
@@ -341,6 +450,7 @@ local function solve_supports(rails, connections)
                         this_point_is_supported_elsewhere = true
                     end
                 end
+                if table.find(supported_by_ramp, supported_point) then this_point_is_supported_elsewhere = true end
                 if not this_point_is_supported_elsewhere then redundant = false end
             end
             if redundant then return i end
@@ -356,28 +466,35 @@ end
 
 ---@param entities BlueprintEntity[]
 ---@return ElevatedRailData[]
+---@return RailRampData[]
 solver.filter_entities = function(entities)
-    -- TODO: probably just filter to elevated rails? still not sure how best to handle ramps
-    local supportable_entities = {}
+    local rails = {}
+    local ramps = {}
     for _, entity in pairs(entities) do
-        if entity.name:find("^elevated") or entity.name == "rail-ramp" then
-            table.insert(supportable_entities, {
+        if entity.name:find("^elevated")then
+            table.insert(rails, {
+                name = entity.name,
+                position = entity.position,
+                direction = entity.direction or defines.direction.north,
+            })
+        elseif entity.name == "rail-ramp"  then
+            table.insert(ramps, {
                 name = entity.name,
                 position = entity.position,
                 direction = entity.direction or defines.direction.north,
             })
         end
     end
-    return supportable_entities
+    return rails, ramps
 end
 
 ---@param entities BlueprintEntity[]
 ---@return BlueprintEntity[] supports The BlueprintEntities for the rail supports to be added
 ---@return ErrorData? err The error data, if any
 solver.get_support_entities = function(entities)
-    local supportable_entities = solver.filter_entities(entities)
-    local connections = solver.get_support_point_connections(supportable_entities)
-    local supports = solve_supports(supportable_entities, connections) --[[@as BlueprintEntity]]
+    local rails, ramps = solver.filter_entities(entities)
+    local connections, supported_by_ramp = solver.get_support_point_connections(rails, ramps)
+    local supports = solve_supports(rails, connections, supported_by_ramp) --[[@as BlueprintEntity]]
 
     local max_entity_number = -1
     for _, entity in pairs(entities) do

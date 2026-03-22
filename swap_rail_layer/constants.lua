@@ -531,5 +531,54 @@ return {
                 },
             },
         },
+        ["rail-ramp"] = {
+            -- for simplicity, ramps only have top points
+            -- and since they automatically provide support (don't need to place a support there), the direction of their "support" is irrelevant
+            -- this is mostly just to tell what rails they can connect to
+            [dir.east]= {
+                top = {
+                    offset = {x = 8, y = 0},
+                    direction = dir.east,
+                    connects_to = {
+                        {name = "elevated-straight-rail", direction = dir.east, location = "bottom"},
+                        {name = "elevated-curved-rail-a", direction = dir.southeast, location = "top"},
+                        {name = "elevated-curved-rail-a", direction = dir.east, location = "bottom"},
+                    },
+                },
+            },
+            [dir.west]= {
+                top = {
+                    offset = {x = -8, y = 0},
+                    direction = dir.east,
+                    connects_to = {
+                        {name = "elevated-straight-rail", direction = dir.east, location = "top"},
+                        {name = "elevated-curved-rail-a", direction = dir.west, location = "top"},
+                        {name = "elevated-curved-rail-a", direction = dir.northwest, location = "bottom"},
+                    },
+                },
+            },
+            [dir.north]= {
+                top = {
+                    offset = {x = 0, y = -8},
+                    direction = dir.north,
+                    connects_to = {
+                        {name = "elevated-straight-rail", direction = dir.north, location = "bottom"},
+                        {name = "elevated-curved-rail-a", direction = dir.north, location = "bottom"},
+                        {name = "elevated-curved-rail-a", direction = dir.northeast, location = "bottom"},
+                    },
+                },
+            },
+            [dir.south]= {
+                top = {
+                    offset = {x = 0, y = 8},
+                    direction = dir.north,
+                    connects_to = {
+                        {name = "elevated-straight-rail", direction = dir.north, location = "top"},
+                        {name = "elevated-curved-rail-a", direction = dir.southwest, location = "top"},
+                        {name = "elevated-curved-rail-a", direction = dir.south, location = "top"},
+                    },
+                },
+            },
+        },
     },
 }
