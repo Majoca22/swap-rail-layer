@@ -558,7 +558,7 @@ solver.get_support_entities = function(entities)
         support.entity_number = max_entity_number + i
     end
 
-    return supports, nil -- TODO: report error
+    return supports, nil -- no errors to report yet, but future-proofing in case we can detect that we simply can't solve a given configuration
 end
 
 return solver
