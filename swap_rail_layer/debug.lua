@@ -205,7 +205,8 @@ local function run_test(player, test_string, map_position, surface)
             },
         })
     else
-        -- TODO: do something with err
+        player.print("Error when running test - see log for details", {skip = defines.print_skip.never})
+        log(serpent.block(err))
     end
     return size.height
 end

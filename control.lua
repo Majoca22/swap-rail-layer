@@ -8,7 +8,6 @@ local debug = require("swap_rail_layer.debug")
 script.on_event("swap_rail_layer_linked",
     ---@param e EventData.CustomInputEvent
     function(e)
-        -- TODO: can't work with stations in the blueprint
         -- TODO: will have to error if there's something beneath an existing elevated rail
         local player = game.get_player(e.player_index)
         if not player then return end
@@ -25,7 +24,11 @@ script.on_event("swap_rail_layer_linked",
                     create_at_cursor = true,
                 })
             else
-                -- TODO: do something with the error
+                player.play_sound({path = "utility/cannot_build"})
+                player.create_local_flying_text({
+                    text = { "swap-rail-layer-error." .. err.type },
+                    create_at_cursor = true,
+                })
             end
         end
     end

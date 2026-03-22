@@ -300,8 +300,8 @@ solver.filter_entities = function(entities)
 end
 
 ---@param entities BlueprintEntity[]
----@return BlueprintEntity[]
----@return boolean -- TODO: error types
+---@return BlueprintEntity[] supports The BlueprintEntities for the rail supports to be added
+---@return ErrorData? err The error data, if any
 solver.get_support_entities = function(entities)
     local supportable_entities = solver.filter_entities(entities)
     local connections = solver.get_support_point_connections(supportable_entities)
@@ -315,7 +315,7 @@ solver.get_support_entities = function(entities)
         support.entity_number = max_entity_number + i
     end
 
-    return supports, false -- TODO: report error
+    return supports, nil -- TODO: report error
 end
 
 return solver
