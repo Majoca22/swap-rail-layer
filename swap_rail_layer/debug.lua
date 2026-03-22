@@ -247,6 +247,12 @@ debug.run_command = function(player, cmd)
 
     elseif cmd == "run-all-tests" then
         run_all_tests(player)
+
+    elseif cmd == "clear-test-surface" then
+        game.surfaces[test_surface_name].clear(true)
+        for _, render_object in pairs(rendering.get_all_objects(script.mod_name)) do
+            if render_object.surface.name == test_surface_name then render_object.destroy() end
+        end
     end
 end
 
