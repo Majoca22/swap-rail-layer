@@ -7,7 +7,7 @@
     "dependencies": [
         "base >= 2.0.76",
         "elevated-rails >= 2.0.76",
-        "flib >= 0.16.3"
+        "flib >= 0.16.5"
     ],
     "rail_bridges_required": true,
     "description": "Press G while holding a blueprint (or after using copy/cut) to swap all rails between ground/elevated layers.",
