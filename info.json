@@ -10,5 +10,8 @@
         "flib >= 0.16.3"
     ],
     "rail_bridges_required": true,
-    "description": "Press G while holding a blueprint (or after using copy/cut) to swap all rails between ground/elevated layers."
+    "description": "Press G while holding a blueprint (or after using copy/cut) to swap all rails between ground/elevated layers.",
+    "package": {
+        "ignore": ["graphics/raw/*"]
+    }
 }
