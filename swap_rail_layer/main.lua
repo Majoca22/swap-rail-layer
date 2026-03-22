@@ -35,7 +35,7 @@ main.swap_rail_layer = function(entities)
         end
 
         -- remove rail supports
-        -- keep them in the table so `entities` stays as an array, we'll fully remove them later
+        -- keep them in the table so `new_entities` stays as an array, we'll fully remove them later
         if entity.name == "rail-support" then new_entities[i].to_delete = true end ---@diagnostic disable-line: inject-field
     end
 
