@@ -1,6 +1,7 @@
 local const = require("swap_rail_layer.constants")
 local table = require("__flib__.table")
 local math = require("__flib__.math")
+local bounding_box = require("__flib__.bounding-box")
 local util = require("__core__.lualib.util")
 
 solver = {}
@@ -76,6 +77,64 @@ solver.sp.position = function(rail, location)
         x = rail.position.x + const.support_points[rail.name][rail.direction][location].offset.x,
         y = rail.position.y + const.support_points[rail.name][rail.direction][location].offset.y,
     }
+end
+
+---Determine if two potential rail supports would collide with each other.
+---@param position1 any
+---@param direction1 any
+---@param position2 any
+---@param direction2 any
+---@return boolean
+solver.sp.will_collide = function(position1, direction1, position2, direction2)
+    local function get_bounding_boxes(position, direction)
+        if direction == defines.direction.north or direction == defines.direction.east then
+            return {
+                {
+                    left_top = {
+                        x = position.x - 2,
+                        y = position.y - 2,
+                    },
+                    right_bottom = {
+                        x = position.x + 2,
+                        y = position.y + 2,
+                    },
+                },
+            }
+        else
+            return {
+                {
+                    left_top = {
+                        x = position.x - 1,
+                        y = position.y - 2,
+                    },
+                    right_bottom = {
+                        x = position.x + 1,
+                        y = position.y + 2,
+                    },
+                },
+                {
+                    left_top = {
+                        x = position.x - 2,
+                        y = position.y - 1,
+                    },
+                    right_bottom = {
+                        x = position.x + 2,
+                        y = position.y + 1,
+                    },
+                },
+            }
+        end
+    end
+
+    local bbs1 = get_bounding_boxes(position1, direction1)
+    local bbs2 = get_bounding_boxes(position2, direction2)
+    local collide = false
+    for _, bb1 in pairs(bbs1) do
+        for _, bb2 in pairs(bbs2) do
+            if bounding_box.intersects_box(bb1, bb2) then collide = true end
+        end
+    end
+    return collide
 end
 
 ---@param rails ElevatedRailData[]
@@ -203,7 +262,6 @@ end
 local function solve_supports(rails, connections)
     local n = #rails
 
-    -- TODO: need to not make supports that collide with each other
     ---@type RailSupportData[]
     local supports = {}
     local original_connections = table.deep_copy(connections) -- since we will be modifying connections
@@ -226,31 +284,45 @@ local function solve_supports(rails, connections)
         if max <= 0 then need_to_add_support = false end
 
         if need_to_add_support then
-            -- add a rail support to this point
             local location = sp.location_from_index(index, n)
             local rail = rails[sp.rail_index(index, n)]
-            table.insert(supports, {
-                name = "rail-support",
-                position = sp.position(rail, location),
-                direction = const.support_points[rail.name][rail.direction][location].direction,
-                point = index,
-                supported_points = original_connections[index],
-            })
+            local position = sp.position(rail, location)
+            local direction = const.support_points[rail.name][rail.direction][location].direction
 
-            -- remove this point and all connected points from consideration
-            -- if point A would support {1, 2, 3, 4, 5} and point B would support {2, 3, 4, 5, 6}, then after adding a support at A, we shouldn't consider B to support 5 points for the purposes of picking the next point
-            -- once A is placed, then adding a support at B would only change 6 to be supported (2-5 are already supported), so in reality B is not that impactful of a support point and we should consider it a low priority
-            for _, connected_support_point in pairs(connections[index]) do
-                -- loop through all the lists of connections
-                for i, conns in pairs(connections) do
-                    if i ~= index then -- don't modify connections[index] (yet) since we are currently iterating over that
-                        local index_to_remove = table.find(conns, connected_support_point)
-                        if index_to_remove then table.remove(conns, index_to_remove) end
-                    end
+            -- first make sure we aren't colliding with any existing supports. if we are, remove this support point from consideration and move on
+            local no_collision = true
+            for _, support in pairs(supports) do
+                if sp.will_collide(position, direction, support.position, support.direction) then
+                    no_collision = false
+                    connections[index] = {}
                 end
             end
-            -- now can modify this table safely
-            connections[index] = {}
+
+            if no_collision then
+                -- add a rail support to this point
+                table.insert(supports, {
+                    name = "rail-support",
+                    position = position,
+                    direction = direction,
+                    point = index,
+                    supported_points = original_connections[index],
+                })
+
+                -- remove this point and all connected points from consideration
+                -- if point A would support {1, 2, 3, 4, 5} and point B would support {2, 3, 4, 5, 6}, then after adding a support at A, we shouldn't consider B to support 5 points for the purposes of picking the next point
+                -- once A is placed, then adding a support at B would only change 6 to be supported (2-5 are already supported), so in reality B is not that impactful of a support point and we should consider it a low priority
+                for _, connected_support_point in pairs(connections[index]) do
+                    -- loop through all the lists of connections
+                    for i, conns in pairs(connections) do
+                        if i ~= index then -- don't modify connections[index] (yet) since we are currently iterating over that
+                            local index_to_remove = table.find(conns, connected_support_point)
+                            if index_to_remove then table.remove(conns, index_to_remove) end
+                        end
+                    end
+                end
+                -- now can modify this table safely
+                connections[index] = {}
+            end
         end
     end
 
