@@ -233,6 +233,8 @@ local function run_all_tests(player)
     inv.insert({name = "rail", count = 2000})
     inv.insert({name = "rail-ramp", count = 2000})
     inv.insert({name = "rail-support", count = 2000})
+    inv.insert({name = "rail-signal", count = 100})
+    inv.insert({name = "rail-chain-signal", count = 100})
 end
 
 ---@param player LuaPlayer
