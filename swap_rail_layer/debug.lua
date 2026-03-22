@@ -4,6 +4,7 @@ local solver = require("swap_rail_layer.support_solver")
 local sp = solver.sp
 local math = require("__flib__.math")
 local table = require("__flib__.table")
+local bounding_box = require("__flib__.bounding-box")
 
 local debug = {}
 local test_surface_name = "srl-tests"
@@ -96,36 +97,40 @@ debug.handle_debug_selection = function(e)
     end
 end
 
+---@param entities LuaEntity[] | BlueprintEntity[]
+---@return BoundingBox
 local function get_bounds(entities)
-    local bounds = {x = {}, y = {}}
-    for _, entity in pairs(entities) do
-        local position = entity.position
+    if not entities then return {{0, 0}, {0, 0}} end
+    local bounds
+    for i, entity in pairs(entities) do
+        local pos = entity.position
+        local box
+        if entity.name == "rail-ramp" then
+            if entity.direction == defines.direction.north or entity.direction == defines.direction.south then
+                box = {{pos.x - 2, pos.y - 8}, {pos.x + 2, pos.y + 8}}
+            else
+                box = {{pos.x - 8, pos.y - 2}, {pos.x + 8, pos.y + 2}}
+            end
+        else
+            box = {{pos.x - 4, pos.y - 4}, {pos.x + 4, pos.y + 4}}
+        end
 
-        -- x min
-        if not bounds.x.min then bounds.x.min = position.x
-        else bounds.x.min = math.min(bounds.x.min, position.x) end
-
-        -- x max
-        if not bounds.x.max then bounds.x.max = position.x
-        else bounds.x.max = math.max(bounds.x.max, position.x) end
-
-        -- y min
-        if not bounds.y.min then bounds.y.min = position.y
-        else bounds.y.min = math.min(bounds.y.min, position.y) end
-
-        -- y max
-        if not bounds.y.max then bounds.y.max = position.y
-        else bounds.y.max = math.max(bounds.y.max, position.y) end
+        if i == 1 then
+            bounds = box
+        else
+            bounds = bounding_box.expand_to_contain_box(bounds, box)
+        end
     end
-    return bounds
+    -- add some final padding
+    return bounding_box.resize(bounds, 2)
 end
 
 local function encode_test_string(blueprint_entities)
     -- blueprint entities can be positioned basically anywhere, so adjust them so they are roughly centered around {0, 0}
     local bounds = get_bounds(blueprint_entities)
-    local median = {
-        x = (bounds.x.min + bounds.x.max) / 2,
-        y = (bounds.y.min + bounds.y.max) / 2,
+    local center = {
+        x = (bounds[1][1] + bounds[2][1]) / 2,
+        y = (bounds[1][2] + bounds[2][2]) / 2,
     }
 
     local entities = {}
@@ -133,8 +138,8 @@ local function encode_test_string(blueprint_entities)
         local e = table.deep_copy(bp_entity)
         e.position = {
             -- move in increments of 2 to respect rail grid
-            x = e.position.x - math.round(median.x, 2),
-            y = e.position.y - math.round(median.y, 2),
+            x = e.position.x - math.round(center.x, 2),
+            y = e.position.y - math.round(center.y, 2),
         }
         table.insert(entities, e)
     end
@@ -147,8 +152,8 @@ local function decode_test_string(str)
     if not decoded then return end
     local entities = helpers.json_to_table(decoded)
     if not entities then return end
-    local bounds = get_bounds(entities)
-    return entities, {width = bounds.x.max - bounds.x.min, height = bounds.y.max - bounds.y.min}
+    local bounds = get_bounds(entities --[[@as BlueprintEntity[] ]])
+    return entities, bounds
 end
 
 local TEST_STRINGS = {
@@ -162,15 +167,19 @@ local TEST_STRINGS = {
 }
 
 local function run_test(player, test_string, map_position, surface)
-    local entities, size = decode_test_string(test_string)
-    if not entities or type(entities) ~= "table" or not next(entities) or not size then return end
+    local entities, bounds = decode_test_string(test_string)
+    if not entities or type(entities) ~= "table" or not next(entities) or not bounds then return end
+    local horizontal_offset = (bounds[2][1] - bounds[1][1] + 4) / 2 -- get the width of the blurpint, so we know how to put the input and output side-by-side
+    local vertical_offset = (bounds[2][2] - bounds[1][2] + 4) / 2 -- get the height of the blurpint, so we know how to put this test below the previous one
+    -- move in increments of 2 to respect rail grid
+    bounds = bounding_box.move(bounds, {math.round(map_position.x - horizontal_offset, 2), math.round(map_position.y + vertical_offset, 2)})
     for _, entity in pairs(entities) do
         surface.create_entity({
             name = entity.name,
             position = {
                 -- move in increments of 2 to respect rail grid
-                x = entity.position.x + math.round(map_position.x - (size.width / 2 + 8), 2),
-                y = entity.position.y + math.round(map_position.y, 2),
+                x = entity.position.x + math.round(map_position.x - horizontal_offset, 2),
+                y = entity.position.y + math.round(map_position.y + vertical_offset, 2),
             },
             direction = entity.direction,
             force = game.forces["player"],
@@ -178,22 +187,11 @@ local function run_test(player, test_string, map_position, surface)
             rail_layer = entity.rail_layer or nil,
         })
     end
-    local bb = {
-        -- move in increments of 2 to respect rail grid
-        left_top = {
-            x = map_position.x - math.round((size.width / 2 + 8), 2) - (size.width / 2) - 4,
-            y = map_position.y - (size.height / 2) - 4,
-        },
-        right_bottom = {
-            x = map_position.x - math.round((size.width / 2 + 8), 2) + (size.width / 2) + 4,
-            y = map_position.y + (size.height / 2) + 4,
-        },
-    }
     rendering.draw_rectangle({
         color = {0, 0, 0},
         width = 4,
-        left_top = bb.left_top,
-        right_bottom = bb.right_bottom,
+        left_top = bounds[1],
+        right_bottom = bounds[2],
         surface = surface,
     })
     player.get_main_inventory().insert("blueprint")
@@ -201,7 +199,7 @@ local function run_test(player, test_string, map_position, surface)
     bp.create_blueprint({
         surface = surface,
         force = player.force,
-        area = bb,
+        area = bounds,
     })
     local new_entities, err = main.swap_rail_layer(bp.get_blueprint_entities())
     if not err then
@@ -211,23 +209,23 @@ local function run_test(player, test_string, map_position, surface)
             force = player.force,
             position = {
                 -- move in increments of 2 to respect rail grid
-                x = map_position.x + math.round((size.width / 2 + 8), 2),
-                y = map_position.y,
+                x = map_position.x + math.round(horizontal_offset, 2),
+                y = map_position.y + math.round(vertical_offset, 2),
             },
         })
     else
         player.print("Error when running test - see log for details", {skip = defines.print_skip.never})
         log(serpent.block(err))
     end
-    return size.height
+    return bounds
 end
 
 local function run_all_tests(player)
     player.teleport({0, 0}, test_surface_name)
     local position = {x = 0, y = 0}
     for _, s in pairs(TEST_STRINGS) do
-        local height = run_test(player, s, position, game.surfaces[test_surface_name])
-        position.y = position.y + height + 16
+        local bounds = run_test(player, s, position, game.surfaces[test_surface_name])
+        position.y = position.y + ((bounds[2][2] - bounds[1][2])) + 4
     end
     local inv = player.get_main_inventory()
     inv.insert({name = "rail", count = 2000})
