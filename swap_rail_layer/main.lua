@@ -7,7 +7,7 @@ local table = require("__flib__.table")
 local main = {}
 
 main.swap_rail_layer = function(entities)
-    new_entities = table.deep_copy(entities)
+    local new_entities = table.deep_copy(entities)
 
     for i, entity in pairs(new_entities) do
         -- error if there are any train stops as these cannot be elevated
