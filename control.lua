@@ -8,7 +8,6 @@ local debug = require("swap_rail_layer.debug")
 script.on_event("swap_rail_layer_linked",
     ---@param e EventData.CustomInputEvent
     function(e)
-        -- TODO: will have to error if there's something beneath an existing elevated rail
         local player = game.get_player(e.player_index)
         if not player then return end
 
