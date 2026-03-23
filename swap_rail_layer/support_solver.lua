@@ -2,6 +2,7 @@ local const = require("swap_rail_layer.constants")
 local table = require("__flib__.table")
 local math = require("__flib__.math")
 local bounding_box = require("__flib__.bounding-box")
+local flib_position = require("__flib__.position")
 local util = require("__core__.lualib.util")
 
 solver = {}
@@ -77,20 +78,14 @@ end
 ---@param location SupportPointLocation
 ---@return MapPosition.0
 solver.sp.position = function(rail, location)
-    return {
-        x = rail.position.x + const.support_points[rail.name][rail.direction][location].offset.x,
-        y = rail.position.y + const.support_points[rail.name][rail.direction][location].offset.y,
-    }
+    return flib_position.add(rail.position, const.support_points[rail.name][rail.direction][location].offset)
 end
 
 ---Determine the map position for a support point on a ramp.
 ---@param ramp RailRampData
 ---@return MapPosition.0
 solver.sp.position_ramp = function(ramp)
-    return {
-        x = ramp.position.x + const.support_points[ramp.name][ramp.direction][const.locations.top].offset.x,
-        y = ramp.position.y + const.support_points[ramp.name][ramp.direction][const.locations.top].offset.y,
-    }
+    return flib_position.add(ramp.position, const.support_points[ramp.name][ramp.direction][const.locations.top].offset)
 end
 
 local function get_bounding_boxes(position, direction)

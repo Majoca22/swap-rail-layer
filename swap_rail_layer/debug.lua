@@ -5,6 +5,7 @@ local sp = solver.sp
 local math = require("__flib__.math")
 local table = require("__flib__.table")
 local bounding_box = require("__flib__.bounding-box")
+local flib_position = require("__flib__.position")
 
 local debug = {}
 local test_surface_name = "srl-tests"
@@ -27,10 +28,7 @@ end
 local function elevated_draw_position(position, offset)
     offset = offset or {x = 0, y = 0}
     -- visually, elevated rails look like they are 3 tiles higher than where their position really is
-    return {
-        x = position.x + offset.x,
-        y = position.y + offset.y - 3,
-    }
+    return flib_position.add(flib_position.add(position, {x = 0, y = -3}), offset)
 end
 
 ---@param e EventData.on_player_selected_area
