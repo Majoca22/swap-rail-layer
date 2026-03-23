@@ -3,7 +3,6 @@ local table = require("__flib__.table")
 local math = require("__flib__.math")
 local bounding_box = require("__flib__.bounding-box")
 local flib_position = require("__flib__.position")
-local util = require("__core__.lualib.util")
 
 solver = {}
 
@@ -309,9 +308,9 @@ solver.get_support_point_connections = function(rails, ramps)
                 local other_pos1 = sp.position(other_rail, const.locations.top)
                 local other_pos2 = sp.position(other_rail, const.locations.bottom)
                 if
-                    util.distance(pos, other_pos1) > const.support_distance
-                    or util.distance(pos, other_rail.position) > const.support_distance
-                    or util.distance(pos, other_pos2) > const.support_distance
+                    flib_position.distance_squared(pos, other_pos1) > const.support_distance_squared
+                    or flib_position.distance_squared(pos, other_rail.position) > const.support_distance_squared
+                    or flib_position.distance_squared(pos, other_pos2) > const.support_distance_squared
                 then return end
 
                 table.insert(connections[index], support_point_index)
@@ -357,9 +356,9 @@ solver.get_support_point_connections = function(rails, ramps)
             local other_pos1 = sp.position(other_rail, const.locations.top)
             local other_pos2 = sp.position(other_rail, const.locations.bottom)
             if
-                util.distance(pos, other_pos1) > const.ramp_support_distance
-                or util.distance(pos, other_rail.position) > const.ramp_support_distance
-                or util.distance(pos, other_pos2) > const.ramp_support_distance
+                flib_position.distance_squared(pos, other_pos1) > const.ramp_support_distance_squared
+                or flib_position.distance_squared(pos, other_rail.position) > const.ramp_support_distance_squared
+                or flib_position.distance_squared(pos, other_pos2) > const.ramp_support_distance_squared
             then return end
 
             table.insert(ramp_connections[i], support_point_index)

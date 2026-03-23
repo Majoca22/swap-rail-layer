@@ -35,8 +35,8 @@ return {
         ["elevated"] = "ground",
     },
 
-    support_distance = prototypes.entity["rail-support"].support_range,
-    ramp_support_distance = prototypes.entity["rail-ramp"].support_range,
+    support_distance_squared = prototypes.entity["rail-support"].support_range ^ 2,
+    ramp_support_distance_squared = prototypes.entity["rail-ramp"].support_range ^ 2,
 
     locations = locations,
 
