@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
-Version: TODO
-Date: TODO
+Version: 1.0.1
+Date: 23 March 2026
   Features:
     - Added a setting to require opt-in for overwriting blueprint contents in place.
   Bugfixes:
