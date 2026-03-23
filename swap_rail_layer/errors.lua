@@ -7,6 +7,7 @@ local errors = {}
 local error_types = {
     "train_stop_in_blueprint",
     "is_not_rail_blueprint",
+    "cannot_write_to_blueprint",
 }
 
 for _, type in pairs(error_types) do

@@ -11,24 +11,28 @@ script.on_event("swap_rail_layer_linked",
         local player = game.get_player(e.player_index)
         if not player then return end
 
-        if player.is_cursor_blueprint() and player.cursor_stack and player.cursor_stack.valid_for_read then
-            local entities = player.cursor_stack.get_blueprint_entities()
-            if not entities then return end
+        local bp, err = main.get_cursor_blueprint(player)
+        if not bp then return end
 
-            local new_entities, err = main.swap_rail_layer(entities)
-            if not err then
-                player.cursor_stack.set_blueprint_entities(new_entities)
-                player.create_local_flying_text({
-                    text = { "rail-layer-switched" },
-                    create_at_cursor = true,
-                })
-            else
-                player.play_sound({path = "utility/cannot_build"})
-                player.create_local_flying_text({
-                    text = { "swap-rail-layer-error." .. err.type },
-                    create_at_cursor = true,
-                })
-            end
+        local new_entities
+        if not err then
+            local entities = bp.get_blueprint_entities()
+            if not entities then return end
+            new_entities, err = main.swap_rail_layer(entities)
+        end
+
+        if not err then
+            bp.set_blueprint_entities(new_entities)
+            player.create_local_flying_text({
+                text = { "rail-layer-switched" },
+                create_at_cursor = true,
+            })
+        else
+            player.play_sound({path = "utility/cannot_build"})
+            player.create_local_flying_text({
+                text = { "swap-rail-layer-error." .. err.type },
+                create_at_cursor = true,
+            })
         end
     end
 )

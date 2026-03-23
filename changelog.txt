@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: TODO
+Date: TODO
+  Bugfixes:
+    - Fixed that the mod wouldn't work when holding a blueprint instead of copy/cut selection. Note that blueprints in the cross-save blueprint library cannot be modified via script, but the mod will work for blueprints in the "game blueprints" library (or your inventory).
+
+---------------------------------------------------------------------------------------------------
 Version: 1.0.0
 Date: 22 March 2026
   Major Features:

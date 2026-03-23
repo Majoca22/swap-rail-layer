@@ -6,6 +6,27 @@ local table = require("__flib__.table")
 
 local main = {}
 
+main.get_cursor_blueprint = function(player)
+    if player.is_cursor_blueprint() then
+        local bp
+        if player.cursor_stack and player.cursor_stack.valid_for_read then
+            bp = player.cursor_stack
+        elseif player.cursor_record then
+            if player.cursor_record.type == "blueprint" then
+                bp = player.cursor_record
+            elseif player.cursor_record.type == "blueprint-book" then
+                bp = player.cursor_record.contents[player.cursor_record.get_active_index(player)]
+            else
+                return
+            end
+            if not bp.valid_for_write then
+                return bp, {type = errors.cannot_write_to_blueprint}
+            end
+        end
+        return bp, nil
+    end
+end
+
 main.swap_rail_layer = function(entities)
     local new_entities = table.deep_copy(entities)
     local is_rail_blueprint = false -- only makes sense to swap if there is at least one rail or ramp
