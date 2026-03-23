@@ -21,6 +21,8 @@ main.get_cursor_blueprint = function(player)
             end
             if not bp.valid_for_write then
                 return bp, {type = errors.cannot_write_to_blueprint}
+            elseif not settings.get_player_settings(player).swap_rail_layer_overwrite_blueprints.value then
+                return bp, {type = errors.blueprint_overwrite_is_disabled}
             end
         end
         return bp, nil

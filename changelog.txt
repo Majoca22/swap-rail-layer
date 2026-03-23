@@ -1,6 +1,8 @@
 ---------------------------------------------------------------------------------------------------
 Version: TODO
 Date: TODO
+  Features:
+    - Added a setting to require opt-in for overwriting blueprint contents in place.
   Bugfixes:
     - Fixed that the mod wouldn't work when holding a blueprint instead of copy/cut selection. Note that blueprints in the cross-save blueprint library cannot be modified via script, but the mod will work for blueprints in the "game blueprints" library (or your inventory).
 
