@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: TODO
+Date: TODO
+  Features:
+    - Mod now detects when lowering an elevated rail would place it on top of an existing entity
+
+---------------------------------------------------------------------------------------------------
 Version: 1.0.1
 Date: 23 March 2026
   Features:
