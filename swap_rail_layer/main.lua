@@ -79,9 +79,11 @@ main.swap_rail_layer = function(entities)
 
     -- error if we would drop an elevated rail on top of another entity
     for _, rail in pairs(new_rail_entities) do
-        for _, box in pairs(rail_mask_collision_boxes) do
-            if collision.rail_collides_with_box(rail, box) then
-                return entities, {type = errors.entity_under_elevated_rail}
+        if not rail.name:find("^elevated-") then
+            for _, box in pairs(rail_mask_collision_boxes) do
+                if collision.rail_collides_with_box(rail, box) then
+                    return entities, {type = errors.entity_under_elevated_rail}
+                end
             end
         end
     end
