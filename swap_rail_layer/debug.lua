@@ -1,6 +1,7 @@
 local const = require("swap_rail_layer.constants")
 local main = require("swap_rail_layer.main")
 local solver = require("swap_rail_layer.support_solver")
+local collision = require("swap_rail_layer.collision")
 local sp = solver.sp
 local math = require("__flib__.math")
 local table = require("__flib__.table")
@@ -92,6 +93,41 @@ debug.handle_debug_selection = function(e)
             target = elevated_draw_position(rail.position),
             surface = e.surface,
         })
+    end
+end
+
+---@param e EventData.on_player_alt_selected_area
+debug.handle_debug_selection_alt = function(e)
+    local rails = {}
+    for _, rail in pairs(e.entities) do
+        table.insert(rails, {
+            name = rail.name == "entity-ghost" and rail.ghost_name or rail.name,
+            position = rail.position,
+            direction = rail.direction,
+        })
+    end
+
+    for _, rail in pairs(rails) do
+        for _, full_tile_offset in pairs(collision.tile_collisions[rail.name][rail.direction].full) do
+            rendering.draw_circle({
+                color = {0, 1, 1},
+                radius = 0.25,
+                width = 2,
+                filled = false,
+                target = flib_position.add(rail.position, full_tile_offset),
+                surface = e.surface,
+            })
+        end
+        for _, partial_tile_offset in pairs(collision.tile_collisions[rail.name][rail.direction].partial) do
+            rendering.draw_circle({
+                color = {1, 1, 1},
+                radius = 0.25,
+                width = 2,
+                filled = false,
+                target = flib_position.add(rail.position, partial_tile_offset),
+                surface = e.surface,
+            })
+        end
     end
 end
 

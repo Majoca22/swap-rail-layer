@@ -57,6 +57,14 @@ script.on_event(defines.events.on_player_selected_area,
     end
 )
 
+script.on_event(defines.events.on_player_alt_selected_area,
+    function(e)
+        if e.item == "swap_rail_layer_debug_selection_tool" and settings.startup.swap_rail_layer_debug.value then
+            debug.handle_debug_selection_alt(e)
+        end
+    end
+)
+
 commands.add_command("srl-debug", "",
     function(c)
         local player = game.get_player(c.player_index)

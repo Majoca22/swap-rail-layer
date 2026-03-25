@@ -9,7 +9,7 @@ local rail_collision_mask_layers = prototypes.entity["straight-rail"].collision_
 local support_collision_mask_layers = prototypes.entity["rail-support"].collision_mask.layers
 
 ---@type { [string]: { [defines.direction]: { ["full" | "partial"]: MapPosition.0[] } } }
-local tile_collisions = {
+collision.tile_collisions = {
     ["straight-rail"] = {
         [dir.north] = {
             full = {

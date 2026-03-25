@@ -17,6 +17,7 @@ if settings.startup["swap_rail_layer_debug"].value then
             draw_label_for_cursor_render = true,
 
             select = {
+                -- support point visualizer
                 border_color = {1, 1, 1},
                 cursor_box_type = "copy",
                 mode = {"any-entity"},
@@ -29,15 +30,15 @@ if settings.startup["swap_rail_layer_debug"].value then
                 },
             },
             alt_select = {
-                border_color = {1, 1, 1},
+                -- collision tile visualizer
+                border_color = {0, 0, 1},
                 cursor_box_type = "copy",
                 mode = {"any-entity"},
                 entity_type_filters = {
-                    "elevated-straight-rail",
-                    "elevated-half-diagonal-rail",
-                    "elevated-curved-rail-a",
-                    "elevated-curved-rail-b",
-                    "rail-ramp",
+                    "straight-rail",
+                    "half-diagonal-rail",
+                    "curved-rail-a",
+                    "curved-rail-b",
                 },
             },
 
