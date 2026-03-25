@@ -1,3 +1,13 @@
+local table = require("__flib__.table")
+local bounding_box = require("__flib__.bounding-box")
+local flib_position = require("__flib__.position")
+local dir = defines.direction
+
+local collision = {}
+
+local rail_collision_mask_layers = prototypes.entity["straight-rail"].collision_mask.layers
+local support_collision_mask_layers = prototypes.entity["rail-support"].collision_mask.layers
+
 ---@type { [string]: { [defines.direction]: { ["full" | "partial"]: MapPosition.0[] } } }
 local tile_collisions = {
     ["straight-rail"] = {
@@ -422,3 +432,40 @@ local tile_collisions = {
     },
 }
 
+---@param entity LuaEntity | BlueprintEntity
+---@return boolean
+collision.mask_collides_with_rail = function(entity)
+    for layer, _ in pairs(prototypes.entity[entity.name].collision_mask.layers) do
+        if rail_collision_mask_layers[layer] then return true end
+    end
+    return false
+end
+
+---@param entity LuaEntity | BlueprintEntity
+---@return boolean
+collision.mask_collides_with_support = function(entity)
+    for layer, _ in pairs(prototypes.entity[entity.name].collision_mask.layers) do
+        if support_collision_mask_layers[layer] then return true end
+    end
+    return false
+end
+
+---@param rail LuaEntity | BlueprintEntity
+---@param box BoundingBox.0
+---@return boolean
+collision.rail_collides_with_box = function(rail, box)
+    -- for now, just ignore full/partial distinction
+    -- later, can detect whether the input bounding box should check against partial tile collisions as well as full tile collisions
+    local positions = table.array_merge({
+        tile_collisions[rail.name][rail.direction].full,
+        tile_collisions[rail.name][rail.direction].partial,
+    })
+    positions = table.map(positions, function(v) return flib_position.add(v, rail.position) end)
+
+    for _, position in pairs(positions) do
+        if bounding_box.contains_position(box, position) then return true end
+    end
+    return false
+end
+
+return collision
