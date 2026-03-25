@@ -1,4 +1,5 @@
 local const = require("swap_rail_layer.constants")
+local collision = require("swap_rail_layer.collision")
 local table = require("__flib__.table")
 local math = require("__flib__.math")
 local bounding_box = require("__flib__.bounding-box")
@@ -85,112 +86,6 @@ end
 ---@return MapPosition.0
 solver.sp.position_ramp = function(ramp)
     return flib_position.add(ramp.position, const.support_points[ramp.name][ramp.direction][const.locations.top].offset)
-end
-
-local function get_bounding_boxes(position, direction)
-    if direction == defines.direction.north or direction == defines.direction.east then
-        return {
-            {
-                left_top = {
-                    x = position.x - 2,
-                    y = position.y - 2,
-                },
-                right_bottom = {
-                    x = position.x + 2,
-                    y = position.y + 2,
-                },
-            },
-        }
-    else
-        return {
-            {
-                left_top = {
-                    x = position.x - 1,
-                    y = position.y - 2,
-                },
-                right_bottom = {
-                    x = position.x + 1,
-                    y = position.y + 2,
-                },
-            },
-            {
-                left_top = {
-                    x = position.x - 2,
-                    y = position.y - 1,
-                },
-                right_bottom = {
-                    x = position.x + 2,
-                    y = position.y + 1,
-                },
-            },
-        }
-    end
-end
-
-local function get_bounding_boxes_ramp(position, direction)
-    if direction == defines.direction.north or direction == defines.direction.south then
-        return {
-            {
-                left_top = {
-                    x = position.x - 2,
-                    y = position.y - 8,
-                },
-                right_bottom = {
-                    x = position.x + 2,
-                    y = position.y + 8,
-                },
-            },
-        }
-    else
-        return {
-            {
-                left_top = {
-                    x = position.x - 8,
-                    y = position.y - 2,
-                },
-                right_bottom = {
-                    x = position.x + 8,
-                    y = position.y + 2,
-                },
-            },
-        }
-    end
-end
-
----Determine if two potential rail supports would collide with each other.
----@param position1 MapPosition.0
----@param direction1 defines.direction
----@param position2 MapPosition.0
----@param direction2 defines.direction
----@return boolean
-solver.sp.will_collide = function(position1, direction1, position2, direction2)
-    local bbs1 = get_bounding_boxes(position1, direction1)
-    local bbs2 = get_bounding_boxes(position2, direction2)
-    local collide = false
-    for _, bb1 in pairs(bbs1) do
-        for _, bb2 in pairs(bbs2) do
-            if bounding_box.intersects_box(bb1, bb2) then collide = true end
-        end
-    end
-    return collide
-end
-
----Determine if a potential rail support would collide with a ramp.
----@param support_position MapPosition.0
----@param support_direction defines.direction
----@param ramp_position MapPosition.0
----@param ramp_direction defines.direction
----@return boolean
-solver.sp.will_collide_with_ramp = function(support_position, support_direction, ramp_position, ramp_direction)
-    local bbs1 = get_bounding_boxes(support_position, support_direction)
-    local bbs2 = get_bounding_boxes_ramp(ramp_position, ramp_direction)
-    local collide = false
-    for _, bb1 in pairs(bbs1) do
-        for _, bb2 in pairs(bbs2) do
-            if bounding_box.intersects_box(bb1, bb2) then collide = true end
-        end
-    end
-    return collide
 end
 
 ---@param rails ElevatedRailData[]
@@ -398,11 +293,11 @@ solver.get_support_point_connections = function(rails, ramps)
 end
 
 ---@param rails ElevatedRailData[]
----@param ramps RailRampData[]
 ---@param connections { [SupportPointIndex]: SupportPointIndex[] }
 ---@param supported_by_ramp SupportPointIndex[]
+---@param collision_avoidance_entities BlueprintEntity[]
 ---@return RailSupportData[]
-local function solve_supports(rails, ramps, connections, supported_by_ramp)
+local function solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities)
     local n = #rails
 
     ---@type RailSupportData[]
@@ -443,13 +338,13 @@ local function solve_supports(rails, ramps, connections, supported_by_ramp)
             -- first make sure we aren't colliding with any existing supports. if we are, remove this support point from consideration and move on
             local no_collision = true
             for _, support in pairs(supports) do
-                if sp.will_collide(position, direction, support.position, support.direction) then
+                if collision.support_would_collide(position, direction, support) then
                     no_collision = false
                     connections[index] = {}
                 end
             end
-            for _, ramp in pairs(ramps) do
-                if sp.will_collide_with_ramp(position, direction, ramp.position, ramp.direction) then
+            for _, other_entity in pairs(collision_avoidance_entities) do
+                if collision.support_would_collide(position, direction, other_entity) then
                     no_collision = false
                     connections[index] = {}
                 end
@@ -538,12 +433,13 @@ solver.filter_entities = function(entities)
 end
 
 ---@param entities BlueprintEntity[]
+---@param collision_avoidance_entities BlueprintEntity[] A list of entities which could potentially collide with new supports
 ---@return BlueprintEntity[] supports The BlueprintEntities for the rail supports to be added
 ---@return ErrorData? err The error data, if any
-solver.get_support_entities = function(entities)
+solver.get_support_entities = function(entities, collision_avoidance_entities)
     local rails, ramps = solver.filter_entities(entities)
     local connections, supported_by_ramp = solver.get_support_point_connections(rails, ramps)
-    local supports = solve_supports(rails, ramps, connections, supported_by_ramp) --[[@as BlueprintEntity]]
+    local supports = solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities) --[[@as BlueprintEntity]]
 
     local max_entity_number = -1
     for _, entity in pairs(entities) do

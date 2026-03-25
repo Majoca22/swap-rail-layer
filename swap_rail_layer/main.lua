@@ -38,7 +38,7 @@ main.swap_rail_layer = function(entities)
     -- rails and supports have slightly different collision masks, so track them separately
     local new_rail_entities = {}
     local rail_mask_collision_boxes = {}
-    local support_mask_collision_boxes = {}
+    local support_collision_avoidance_entities = {}
 
     for i, entity in pairs(new_entities) do
         -- error if there are any train stops as these cannot be elevated
@@ -50,11 +50,13 @@ main.swap_rail_layer = function(entities)
             is_rail_blueprint = true
             entity.name = const.hotswap_map[entity.name]
             table.insert(new_rail_entities, entity)
+            if not entity.name:find("^elevated") then table.insert(support_collision_avoidance_entities, entity) end
 
         -- reverse ramps
         elseif entity.name == "rail-ramp" then
             is_rail_blueprint = true
             entity.direction = direction.opposite(entity.direction or defines.direction.north)
+            table.insert(support_collision_avoidance_entities, entity)
 
         -- change layer of signals
         elseif entity.name == "rail-signal" or entity.name == "rail-chain-signal" then
@@ -67,9 +69,8 @@ main.swap_rail_layer = function(entities)
 
         -- log non-rail-related collision box, if it would collide with a new ground rail or rail support
         else
-            local bb = bounding_box.move(prototypes.entity[entity.name].collision_box, entity.position)
-            if collision.mask_collides_with_rail(entity) then table.insert(rail_mask_collision_boxes, bb) end
-            if collision.mask_collides_with_support(entity) then table.insert(support_mask_collision_boxes, bb) end
+            if collision.mask_collides_with_rail(entity) then table.insert(rail_mask_collision_boxes, bounding_box.move(prototypes.entity[entity.name].collision_box, entity.position)) end
+            if collision.mask_collides_with_support(entity) then table.insert(support_collision_avoidance_entities, entity) end
         end
     end
 
@@ -79,7 +80,7 @@ main.swap_rail_layer = function(entities)
 
     -- error if we would drop an elevated rail on top of another entity
     for _, rail in pairs(new_rail_entities) do
-        if not rail.name:find("^elevated-") then
+        if not rail.name:find("^elevated") then
             for _, box in pairs(rail_mask_collision_boxes) do
                 if collision.rail_collides_with_box(rail, box) then
                     return entities, {type = errors.entity_under_elevated_rail}
@@ -89,7 +90,7 @@ main.swap_rail_layer = function(entities)
     end
 
     -- add rail supports
-    local supports, err = solver.get_support_entities(new_entities)
+    local supports, err = solver.get_support_entities(new_entities, support_collision_avoidance_entities)
     if not err then
         new_entities = table.array_merge({new_entities, supports})
 
