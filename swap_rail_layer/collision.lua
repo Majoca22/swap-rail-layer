@@ -457,8 +457,8 @@ collision.rail_collides_with_box = function(rail, box)
     -- for now, just ignore full/partial distinction
     -- later, can detect whether the input bounding box should check against partial tile collisions as well as full tile collisions
     local positions = table.array_merge({
-        tile_collisions[rail.name][rail.direction].full,
-        tile_collisions[rail.name][rail.direction].partial,
+        collision.tile_collisions[rail.name][rail.direction].full,
+        collision.tile_collisions[rail.name][rail.direction].partial,
     })
     positions = table.map(positions, function(v) return flib_position.add(v, rail.position) end)
 
