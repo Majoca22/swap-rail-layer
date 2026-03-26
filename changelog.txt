@@ -4,6 +4,7 @@ Date: TODO
   Features:
     - Mod now detects when lowering an elevated rail would place it on top of an existing entity
     - Mod now avoids placing rail supports that would collide with other entities
+    - Mod now detects when it failed to find a valid solution for support placement
 
 ---------------------------------------------------------------------------------------------------
 Version: 1.0.1

@@ -1,5 +1,6 @@
 local const = require("swap_rail_layer.constants")
 local collision = require("swap_rail_layer.collision")
+local errors = require("swap_rail_layer.errors")
 local table = require("__flib__.table")
 local math = require("__flib__.math")
 local bounding_box = require("__flib__.bounding-box")
@@ -296,9 +297,11 @@ end
 ---@param connections { [SupportPointIndex]: SupportPointIndex[] }
 ---@param supported_by_ramp SupportPointIndex[]
 ---@param collision_avoidance_entities BlueprintEntity[]
----@return RailSupportData[]
+---@return RailSupportData[] supports
+---@return ErrorData? err
 local function solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities)
     local n = #rails
+    local supported_points = table.invert(supported_by_ramp)
 
     ---@type RailSupportData[]
     local supports = {}
@@ -371,11 +374,16 @@ local function solve_supports(rails, connections, supported_by_ramp, collision_a
                             if index_to_remove then table.remove(conns, index_to_remove) end
                         end
                     end
+                    supported_points[connected_support_point] = true
                 end
                 -- now can modify this table safely
                 connections[index] = {}
             end
         end
+    end
+
+    if table_size(supported_points) < table_size(original_connections) then
+        return supports, {type = errors.failed_to_solve_supports}
     end
 
     -- remove redundant supports
@@ -405,7 +413,7 @@ local function solve_supports(rails, connections, supported_by_ramp, collision_a
         if redundant_index then table.remove(supports, redundant_index) end
     until not redundant_index
 
-    return supports
+    return supports, nil
 end
 
 ---@param entities BlueprintEntity[]
@@ -439,17 +447,19 @@ end
 solver.get_support_entities = function(entities, collision_avoidance_entities)
     local rails, ramps = solver.filter_entities(entities)
     local connections, supported_by_ramp = solver.get_support_point_connections(rails, ramps)
-    local supports = solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities) --[[@as BlueprintEntity]]
+    local supports, err = solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities)
+
+    if err then return supports, err end
 
     local max_entity_number = -1
     for _, entity in pairs(entities) do
         if entity.entity_number > max_entity_number then max_entity_number = entity.entity_number end
     end
     for i, support in pairs(supports) do
-        support.entity_number = max_entity_number + i
+        support.entity_number = max_entity_number + i ---@diagnostic disable-line: inject-field
     end
 
-    return supports, nil -- no errors to report yet, but future-proofing in case we can detect that we simply can't solve a given configuration
+    return supports, nil
 end
 
 return solver

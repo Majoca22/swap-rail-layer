@@ -10,6 +10,7 @@ local error_types = {
     "cannot_write_to_blueprint",
     "blueprint_overwrite_is_disabled",
     "entity_under_elevated_rail",
+    "failed_to_solve_supports",
 }
 
 for _, type in pairs(error_types) do
