@@ -533,8 +533,11 @@ collision.support_would_collide = function(support_position, support_direction, 
     local other_bbs
     if collision.bounding_boxes[entity.name] then
         other_bbs = collision.bounding_boxes[entity.name][entity.direction]
-    else
+    -- don't want to check bounding boxes for entities where we've already defined tile-level overrides
+    elseif not collision.tile_collisions[entity.name] then
         other_bbs = {prototypes.entity[entity.name].collision_box}
+    else
+        other_bbs = {}
     end
     other_bbs = table.map(other_bbs, function(v) return bounding_box.move(v, entity.position) end)
     other_bbs = table.map(other_bbs, function(v) return rotate_bounding_box(v, entity.direction) end)

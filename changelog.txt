@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 1.1.2
+Date: 10 June 2026
+  Bugfixes:
+    - Fixed that the rail support solver was sometimes being too restrictive with avoiding collision with curved rails
+
+---------------------------------------------------------------------------------------------------
 Version: 1.1.1
 Date: 10 June 2026
   Bugfixes:
