@@ -12,9 +12,9 @@ main.get_cursor_blueprint = function(player)
     if player.is_cursor_blueprint() then
         local bp
         if player.cursor_stack and player.cursor_stack.valid_for_read then
-            if player.cursor_stack.type == "blueprint" then
+            if player.cursor_stack.is_blueprint then
                 bp = player.cursor_stack
-            elseif player.cursor_stack.type == "blueprint-book" then
+            elseif player.cursor_stack.is_blueprint_book then
                 bp = player.cursor_stack.get_inventory(defines.inventory.item_main)[player.cursor_stack.active_index]
             else
                 return
