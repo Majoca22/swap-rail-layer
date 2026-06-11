@@ -3,6 +3,7 @@ Version: TODO
 Date: TODO
   Bugfixes:
     - Fixed crash when attempting to swap rail layer on a blueprint book stored in the player's inventory (thanks SirVitoMonkeone for report)
+    - Fixed that the mod would not work with nested blueprint books
 
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.0
