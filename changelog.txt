@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: TODO
+Date: TODO
+  Bugfixes:
+    - Fixed crash when attempting to swap rail layer on a blueprint book stored in the player's inventory (thanks SirVitoMonkeone for report)
+
+---------------------------------------------------------------------------------------------------
 Version: 1.1.0
 Date: 25 March 2026
   Features:
