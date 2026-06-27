@@ -1,4 +1,5 @@
 local flib_table = require("__flib__.table")
+local flib_array = require("__flib__.array")
 local bounding_box = require("__flib__.bounding-box")
 local flib_position = require("__flib__.position")
 local dir = defines.direction
@@ -492,7 +493,7 @@ end
 collision.rail_collides_with_box = function(rail, box)
     -- for now, just ignore full/partial distinction
     -- later, can detect whether the input bounding box should check against partial tile collisions as well as full tile collisions
-    local positions = flib_table.array_merge({
+    local positions = flib_array.flatten({
         collision.tile_collisions[rail.name][rail.direction or dir.north].full,
         collision.tile_collisions[rail.name][rail.direction or dir.north].partial,
     })

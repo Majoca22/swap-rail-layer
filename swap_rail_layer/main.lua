@@ -4,6 +4,7 @@ local errors = require("swap_rail_layer.errors")
 local collision = require("swap_rail_layer.collision")
 local direction = require("__flib__.direction")
 local flib_table = require("__flib__.table")
+local flib_array = require("__flib__.array")
 local bounding_box = require("__flib__.bounding-box")
 
 local main = {}
@@ -106,7 +107,7 @@ main.swap_rail_layer = function(entities)
     -- add rail supports
     local supports, err = solver.get_support_entities(new_entities, support_collision_avoidance_entities)
     if not err then
-        new_entities = flib_table.array_merge({new_entities, supports})
+        new_entities = flib_array.flatten({new_entities, supports})
 
         for i, t in pairs(new_entities) do
             if t.to_delete then new_entities[i] = nil end
