@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: TODO
+  Major Features:
+    - Updated to be compatible with Factorio 2.1
+  Changes:
+    - Updated minimum Factorio Library version
+
+---------------------------------------------------------------------------------------------------
 Version: 1.1.2
 Date: 10 June 2026
   Bugfixes:
