@@ -5,6 +5,8 @@ Date: TODO
     - Updated to be compatible with Factorio 2.1
   Changes:
     - Updated minimum Factorio Library version
+  Graphics:
+    - Updated thumbnail to use new rail icons
 
 ---------------------------------------------------------------------------------------------------
 Version: 1.1.2
