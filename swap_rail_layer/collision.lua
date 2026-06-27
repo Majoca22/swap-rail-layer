@@ -497,7 +497,7 @@ collision.rail_collides_with_box = function(rail, box)
         collision.tile_collisions[rail.name][rail.direction or dir.north].full,
         collision.tile_collisions[rail.name][rail.direction or dir.north].partial,
     })
-    positions = flib_table.map(positions, function(v) return flib_position.add(v, rail.position) end)
+    positions = flib_table.mapped(positions, function(v) return flib_position.add(v, rail.position) end)
 
     for _, position in pairs(positions) do
         if bounding_box.contains_position(box, position) then return true end
@@ -522,7 +522,7 @@ end
 ---@return boolean
 collision.support_would_collide = function(support_position, support_direction, entity)
     local support_bbs = collision.bounding_boxes["rail-support"][support_direction]
-    support_bbs = flib_table.map(support_bbs, function(v) return bounding_box.move(v, support_position) end)
+    support_bbs = flib_table.mapped(support_bbs, function(v) return bounding_box.move(v, support_position) end)
 
     -- special case for rails since we check tiles rather than bounding boxes
     if collision.tile_collisions[entity.name] then
@@ -540,8 +540,8 @@ collision.support_would_collide = function(support_position, support_direction, 
     else
         other_bbs = {}
     end
-    other_bbs = flib_table.map(other_bbs, function(v) return bounding_box.move(v, entity.position) end)
-    other_bbs = flib_table.map(other_bbs, function(v) return rotate_bounding_box(v, entity.direction) end)
+    other_bbs = flib_table.mapped(other_bbs, function(v) return bounding_box.move(v, entity.position) end)
+    other_bbs = flib_table.mapped(other_bbs, function(v) return rotate_bounding_box(v, entity.direction) end)
 
     for _, bb1 in pairs(support_bbs) do
         for __, bb2 in pairs(other_bbs) do
