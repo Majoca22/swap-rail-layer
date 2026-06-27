@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
 Version: 2.0.0
-Date: TODO
+Date: 27 June 2026
   Major Features:
     - Updated to be compatible with Factorio 2.1
   Changes:
