@@ -3,8 +3,8 @@ local main = require("swap_rail_layer.main")
 local solver = require("swap_rail_layer.support_solver")
 local collision = require("swap_rail_layer.collision")
 local sp = solver.sp
-local math = require("__flib__.math")
-local table = require("__flib__.table")
+local flib_math = require("__flib__.math")
+local flib_table = require("__flib__.table")
 local bounding_box = require("__flib__.bounding-box")
 local flib_position = require("__flib__.position")
 
@@ -47,7 +47,7 @@ debug.handle_debug_selection = function(e)
     log("----------------------------------------------------------------------------------")
     local connections, supported_by_ramp = solver.get_support_point_connections(rails, ramps)
     for i, conns in pairs(connections) do
-        table.sort(conns)
+        flib_table.sort(conns)
         log(i .. ": " .. serpent.line(conns))
     end
     log("supported by ramp: " .. serpent.line(supported_by_ramp))
@@ -100,7 +100,7 @@ end
 debug.handle_debug_selection_alt = function(e)
     local rails = {}
     for _, rail in pairs(e.entities) do
-        table.insert(rails, {
+        flib_table.insert(rails, {
             name = rail.name == "entity-ghost" and rail.ghost_name or rail.name,
             position = rail.position,
             direction = rail.direction,
@@ -169,11 +169,11 @@ local function encode_test_string(blueprint_entities)
 
     local entities = {}
     for _, bp_entity in pairs(blueprint_entities) do
-        local e = table.deep_copy(bp_entity)
+        local e = flib_table.deep_copy(bp_entity)
         e.position = {
             -- move in increments of 2 to respect rail grid
-            x = e.position.x - math.round(center.x, 2),
-            y = e.position.y - math.round(center.y, 2),
+            x = e.position.x - flib_math.round(center.x, 2),
+            y = e.position.y - flib_math.round(center.y, 2),
         }
         table.insert(entities, e)
     end
@@ -211,14 +211,14 @@ local function run_test(player, test_string, map_position, surface)
     local horizontal_offset = (bounds[2][1] - bounds[1][1] + 4) / 2 -- get the width of the blurpint, so we know how to put the input and output side-by-side
     local vertical_offset = (bounds[2][2] - bounds[1][2] + 4) / 2 -- get the height of the blurpint, so we know how to put this test below the previous one
     -- move in increments of 2 to respect rail grid
-    bounds = bounding_box.move(bounds, {math.round(map_position.x - horizontal_offset, 2), math.round(map_position.y + vertical_offset, 2)})
+    bounds = bounding_box.move(bounds, {flib_math.round(map_position.x - horizontal_offset, 2), flib_math.round(map_position.y + vertical_offset, 2)})
     for _, entity in pairs(entities) do
         surface.create_entity({
             name = entity.name,
             position = {
                 -- move in increments of 2 to respect rail grid
-                x = entity.position.x + math.round(map_position.x - horizontal_offset, 2),
-                y = entity.position.y + math.round(map_position.y + vertical_offset, 2),
+                x = entity.position.x + flib_math.round(map_position.x - horizontal_offset, 2),
+                y = entity.position.y + flib_math.round(map_position.y + vertical_offset, 2),
             },
             direction = entity.direction,
             force = game.forces["player"],
@@ -248,8 +248,8 @@ local function run_test(player, test_string, map_position, surface)
             force = player.force,
             position = {
                 -- move in increments of 2 to respect rail grid
-                x = map_position.x + math.round(horizontal_offset, 2),
-                y = map_position.y + math.round(vertical_offset, 2),
+                x = map_position.x + flib_math.round(horizontal_offset, 2),
+                y = map_position.y + flib_math.round(vertical_offset, 2),
             },
         })
     else

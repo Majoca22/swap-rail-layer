@@ -3,7 +3,7 @@ local solver = require("swap_rail_layer.support_solver")
 local errors = require("swap_rail_layer.errors")
 local collision = require("swap_rail_layer.collision")
 local direction = require("__flib__.direction")
-local table = require("__flib__.table")
+local flib_table = require("__flib__.table")
 local bounding_box = require("__flib__.bounding-box")
 
 local main = {}
@@ -46,7 +46,7 @@ main.get_cursor_blueprint = function(player)
 end
 
 main.swap_rail_layer = function(entities)
-    local new_entities = table.deep_copy(entities)
+    local new_entities = flib_table.deep_copy(entities)
     local is_rail_blueprint = false -- only makes sense to swap if there is at least one rail or ramp
     -- keep track of "normal" entity collision boxes, so we know if we're going to drop an elevated rail on top of them (or later, to avoid placing a support there)
     -- rails and supports have slightly different collision masks, so track them separately
@@ -106,7 +106,7 @@ main.swap_rail_layer = function(entities)
     -- add rail supports
     local supports, err = solver.get_support_entities(new_entities, support_collision_avoidance_entities)
     if not err then
-        new_entities = table.array_merge({new_entities, supports})
+        new_entities = flib_table.array_merge({new_entities, supports})
 
         for i, t in pairs(new_entities) do
             if t.to_delete then new_entities[i] = nil end

@@ -1,8 +1,7 @@
 local const = require("swap_rail_layer.constants")
 local collision = require("swap_rail_layer.collision")
 local errors = require("swap_rail_layer.errors")
-local table = require("__flib__.table")
-local math = require("__flib__.math")
+local flib_table = require("__flib__.table")
 local bounding_box = require("__flib__.bounding-box")
 local flib_position = require("__flib__.position")
 
@@ -301,16 +300,16 @@ end
 ---@return ErrorData? err
 local function solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities)
     local n = #rails
-    local supported_points = table.invert(supported_by_ramp)
+    local supported_points = flib_table.invert(supported_by_ramp)
 
     ---@type RailSupportData[]
     local supports = {}
-    local original_connections = table.deep_copy(connections) -- since we will be modifying connections
+    local original_connections = flib_table.deep_copy(connections) -- since we will be modifying connections
 
     -- remove all points that are supported by ramps from consideration, because we don't need to provide support for them with rail supports
     for _, supported_point in pairs(supported_by_ramp) do
         for __, conns in pairs(connections) do
-            local index_to_remove = table.find(conns, supported_point)
+            local index_to_remove = flib_table.find(conns, supported_point)
             if index_to_remove then table.remove(conns, index_to_remove) end
         end
     end
@@ -370,7 +369,7 @@ local function solve_supports(rails, connections, supported_by_ramp, collision_a
                     -- loop through all the lists of connections
                     for i, conns in pairs(connections) do
                         if i ~= index then -- don't modify connections[index] (yet) since we are currently iterating over that
-                            local index_to_remove = table.find(conns, connected_support_point)
+                            local index_to_remove = flib_table.find(conns, connected_support_point)
                             if index_to_remove then table.remove(conns, index_to_remove) end
                         end
                     end
@@ -397,12 +396,12 @@ local function solve_supports(rails, connections, supported_by_ramp, collision_a
             for _, supported_point in pairs(support.supported_points) do
                 local this_point_is_supported_elsewhere = false
                 for j, other_support in pairs(supports) do
-                    if i ~= j and table.find(other_support.supported_points, supported_point) then
+                    if i ~= j and flib_table.find(other_support.supported_points, supported_point) then
                         this_point_is_supported_elsewhere = true
                     end
                 end
                 -- point can also be supported by a ramp
-                if table.find(supported_by_ramp, supported_point) then this_point_is_supported_elsewhere = true end
+                if flib_table.find(supported_by_ramp, supported_point) then this_point_is_supported_elsewhere = true end
                 if not this_point_is_supported_elsewhere then redundant = false end
             end
             if redundant then return i end
