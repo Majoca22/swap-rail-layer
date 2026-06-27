@@ -300,7 +300,7 @@ end
 ---@return ErrorData? err
 local function solve_supports(rails, connections, supported_by_ramp, collision_avoidance_entities)
     local n = #rails
-    local supported_points = flib_table.invert(supported_by_ramp)
+    local supported_points = flib_table.inverted(supported_by_ramp)
 
     ---@type RailSupportData[]
     local supports = {}
